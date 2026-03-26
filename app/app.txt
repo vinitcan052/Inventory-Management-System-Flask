@@ -1,0 +1,31 @@
+app/
+ ├── api/                # Routes (FastAPI/Flask blueprints)
+ │    └── inventory.py
+ │    └── auth.py
+ │
+ ├── models/             # SQLAlchemy models
+ │    └── user.py
+ │    └── product.py
+ │    └── order.py
+ │
+ ├── schemas/            # Request/response validation
+ │    └── user_schema.py
+ │    └── product_schema.py
+ │
+ ├── dao/                # 🔥 Database access layer
+ │    └── user_dao.py
+ │    └── product_dao.py
+ │    └── order_dao.py
+ │
+ ├── services/           # 🔥 Business logic layer
+ │    └── user_service.py
+ │    └── inventory_service.py
+ │
+ ├── core/               # Config, security, utils
+ │    └── config.py
+ │    └── security.py   # JWT logic
+ │
+ ├── db/
+ │    └── session.py
+ │
+ ├── main.py

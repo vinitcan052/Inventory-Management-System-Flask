@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeloStock | Digital Inventory Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a; 
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .view-section { display: none; }
+        .active-view { display: block; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .neo-card { 
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .neo-card:hover {
+            border-color: #10b981;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .btn-primary {
+            background: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover { transform: scale(1.02); opacity: 0.9; }
+
+        .input-dark {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: white;
+            outline: none;
+        }
+        .input-dark:focus { border-color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <nav class="border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="goHome()">
+                <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-slate-900">
+                    <i class="fas fa-box-archive text-sm"></i>
+                </div>
+                <span class="text-xl font-800 tracking-tighter uppercase italic">Velo<span class="text-emerald-400">Stock</span></span>
+            </div>
+            <div id="navUser" class="hidden items-center gap-4">
+                <button onclick="logout()" class="text-xs font-bold text-rose-400 uppercase tracking-widest hover:text-rose-300 transition">Disconnect</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="toast" class="fixed top-24 right-6 hidden px-6 py-3 rounded-xl font-bold z-[100] transition-all"></div>
+
+    <div class="max-w-5xl mx-auto px-6 py-12">
+
+        <div id="landingView" class="view-section active-view text-center py-20">
+            <h1 class="text-7xl md:text-8xl font-800 mb-8 tracking-tighter leading-none">
+                GRID <br> <span class="text-emerald-500">CONTROL.</span>
+            </h1>
+            <p class="text-slate-400 mb-12 max-w-sm mx-auto">High-performance ledger-based inventory management.</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="showView('loginView')" class="btn-primary text-slate-900 font-800 py-5 px-12 rounded-2xl">Access Terminal</button>
+                <button onclick="showView('signupView')" class="bg-white/5 border border-white/10 font-800 py-5 px-12 rounded-2xl hover:bg-white/10">Register Node</button>
+            </div>
+        </div>
+
+        <div class="max-w-md mx-auto">
+            <div id="loginView" class="view-section neo-card p-10">
+                <h3 class="text-3xl font-800 mb-8 text-white">Authenticate</h3>
+                <form onsubmit="handleLogin(event)" class="space-y-5">
+                    <input type="email" id="loginEmail" placeholder="Email Address" required class="input-dark w-full p-4 rounded-xl">
+                    <input type="password" id="loginPassword" placeholder="Access Key" required class="input-dark w-full p-4 rounded-xl">
+                    <button type="submit" class="w-full btn-primary text-slate-900 font-800 py-4 rounded-xl">Enter Grid</button>
+                </form>
+            </div>
+
+            <div id="signupView" class="view-section neo-card p-10">
+                <h3 class="text-3xl font-800 mb-8 text-white">Register Admin</h3>
+                <form onsubmit="handleSignup(event)" class="space-y-4">
+                    <input type="text" id="regUser" placeholder="Username" required class="input-dark w-full p-4 rounded-xl">
+                    <input type="email" id="regEmail" placeholder="Admin Email" required class="input-dark w-full p-4 rounded-xl">
+                    <input type="password" id="regPassword" placeholder="New Password" required class="input-dark w-full p-4 rounded-xl">
+                    <button type="submit" class="w-full btn-primary text-slate-900 font-800 py-4 rounded-xl">Create Account</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="dashboardView" class="view-section">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <p class="text-emerald-500 text-xs font-800 uppercase tracking-widest mb-1">Live Assets</p>
+                    <h2 class="text-4xl font-800">Inventory Nodes</h2>
+                </div>
+                <button onclick="showView('createProductView')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-6 py-3 rounded-xl font-bold hover:bg-emerald-500 hover:text-slate-900 transition">
+                    + New Product
+                </button>
+            </div>
+            <div id="productList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </div>
+
+        <div id="createProductView" class="view-section max-w-md mx-auto neo-card p-10">
+            <h3 class="text-2xl font-800 mb-6 text-emerald-400">Initialize Product</h3>
+            <form onsubmit="handleCreateProduct(event)" class="space-y-4">
+                <input type="text" id="prodName" placeholder="Product Name" required class="input-dark w-full p-4 rounded-xl">
+                <input type="text" id="prodSku" placeholder="Unique SKU" required class="input-dark w-full p-4 rounded-xl font-mono">
+                <input type="number" id="prodPrice" placeholder="Unit Price" step="0.01" required class="input-dark w-full p-4 rounded-xl">
+                <button type="submit" class="w-full btn-primary text-slate-900 font-800 py-4 rounded-xl">Deploy to Grid</button>
+                <button type="button" onclick="loadDashboard()" class="w-full text-slate-500 font-bold mt-2">Cancel</button>
+            </form>
+        </div>
+
+        <div id="productDetailView" class="view-section">
+            <button onclick="loadDashboard()" class="text-slate-500 hover:text-white mb-8 block transition font-bold"><i class="fas fa-arrow-left mr-2"></i>Back to Grid</button>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 neo-card p-10 border-l-4 border-emerald-500">
+                    <h2 id="detailName" class="text-4xl font-800 text-white mb-2"></h2>
+                    <p id="detailSku" class="text-lg font-mono text-slate-400 mb-8"></p>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold mb-1">Available Units</p>
+                        <p id="detailQty" class="text-5xl font-800 text-emerald-400">0</p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <button onclick="openAdjust('add')" class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-emerald-500 hover:text-slate-900 transition font-800 flex justify-between items-center">
+                        Add Stock <i class="fas fa-plus-circle"></i>
+                    </button>
+                    <button onclick="openAdjust('buy')" class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-rose-500 hover:text-white transition font-800 flex justify-between items-center">
+                        Dispatch Stock <i class="fas fa-minus-circle"></i>
+                    </button>
+                    <button onclick="loadHistory()" class="p-6 rounded-2xl bg-slate-800 font-800 flex justify-between items-center hover:bg-slate-700">
+                        View Audit Log <i class="fas fa-clock-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="adjustStockView" class="view-section max-w-md mx-auto neo-card p-10">
+            <h3 id="adjustTitle" class="text-2xl font-800 mb-8 text-center uppercase tracking-widest text-emerald-400"></h3>
+            <form onsubmit="handleStockAdjust(event)" class="space-y-6">
+                <div class="text-center">
+                    <p class="text-slate-500 text-xs mb-4">Input Quantity</p>
+                    <input type="number" id="adjustQty" placeholder="0" required class="w-full bg-transparent text-6xl font-800 text-center outline-none text-white placeholder-slate-800">
+                </div>
+                <div class="flex gap-4 mt-8">
+                    <button type="button" onclick="showView('productDetailView')" class="flex-1 py-4 text-slate-500 font-bold">Cancel</button>
+                    <button type="submit" id="adjustBtn" class="flex-[2] btn-primary text-slate-900 font-800 py-4 rounded-xl">Confirm</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="historyView" class="view-section">
+            <button onclick="showView('productDetailView')" class="text-slate-500 mb-8 block font-bold"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+            <div class="neo-card overflow-hidden">
+                <table class="w-full text-left">
+                    <tbody id="historyTable" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000"; 
+        let token = localStorage.getItem('inv_token') || null;
+        let activePid = null;
+        let activeActionType = null;
+
+        // --- CORE UTILS ---
+        function showView(id) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+            const target = document.getElementById(id);
+            if(target) target.classList.add('active-view');
+            document.getElementById('navUser').className = token ? 'flex items-center gap-4' : 'hidden';
+        }
+
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `fixed top-24 right-6 px-6 py-3 rounded-xl font-bold z-[100] transition-all ${isError ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-slate-900'}`;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 4000);
+        }
+
+        async function apiReq(path, method = 'GET', body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            
+            try {
+                const res = await fetch(`${API_BASE}${path}`, { 
+                    method, 
+                    headers, 
+                    body: body ? JSON.stringify(body) : null 
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    throw new Error("Session Expired");
+                }
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Server Error");
+                return data;
+            } catch (err) {
+                console.error("API Fetch Error:", err);
+                throw err;
+            }
+        }
+
+        function goHome() { token ? loadDashboard() : showView('landingView'); }
+        function logout() { localStorage.removeItem('inv_token'); token = null; showView('landingView'); }
+
+        // --- AUTH HANDLERS ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            try {
+                // Use shorthand keys 'e' and 'p' for backend
+                const data = await apiReq('/auth/login', 'POST', { 
+                    e: loginEmail.value, 
+                    p: loginPassword.value 
+                });
+                token = data.token;
+                localStorage.setItem('inv_token', token);
+                showToast("Access Granted");
+                loadDashboard();
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            try {
+                // Use shorthand keys 'u', 'e', 'p' for backend
+                await apiReq('/auth/register', 'POST', { 
+                    u: regUser.value, 
+                    e: regEmail.value, 
+                    p: regPassword.value 
+                });
+                showToast("Account Created. Please Login.");
+                showView('loginView');
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        // --- PRODUCT HANDLERS ---
+        async function loadDashboard() {
+            showView('dashboardView');
+            try {
+                const products = await apiReq('/products/');
+                const list = document.getElementById('productList');
+                list.innerHTML = products.map(p => `
+                    <div onclick="openProduct(${p.id}, '${p.name}', '${p.sku}', ${p.units})" class="neo-card p-8 cursor-pointer group">
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="text-[10px] font-800 text-emerald-500 uppercase tracking-widest">Asset Node</span>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold">Balance</p>
+                                <p class="text-2xl font-800 text-white">${p.units || 0}</p>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-800 mb-1 truncate text-white">${p.name}</p>
+                        <p class="text-xs font-mono text-slate-500">SKU: ${p.sku}</p>
+                    </div>
+                `).join('') || '<p class="col-span-full py-20 text-center text-slate-500 italic">Grid empty. Add a product to begin.</p>';
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        function openProduct(id, name, sku, units) {
+            activePid = id;
+            document.getElementById('detailName').innerText = name;
+            document.getElementById('detailSku').innerText = `SKU: ${sku}`;
+            document.getElementById('detailQty').innerText = units || 0;
+            showView('productDetailView');
+        }
+
+        async function handleCreateProduct(e) {
+            e.preventDefault();
+            try {
+                await apiReq('/products/', 'POST', { 
+                    name: prodName.value, 
+                    sku: prodSku.value, 
+                    price: parseFloat(prodPrice.value) 
+                });
+                showToast("Product Initialized");
+                loadDashboard();
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        // --- INVENTORY HANDLERS ---
+        function openAdjust(type) {
+            activeActionType = type;
+            document.getElementById('adjustTitle').innerText = type === 'add' ? 'Add Stock' : 'Dispatch Stock';
+            document.getElementById('adjustQty').value = '';
+            showView('adjustStockView');
+        }
+
+        async function handleStockAdjust(e) {
+            e.preventDefault();
+            try {
+                await apiReq(`/inventory/${activeActionType}`, 'POST', { 
+                    pid: activePid, 
+                    qty: parseInt(adjustQty.value) 
+                });
+                showToast("Ledger Updated Successfully");
+                loadDashboard();
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        async function loadHistory() {
+            showView('historyView');
+            try {
+                const logs = await apiReq(`/inventory/history/${activePid}`);
+                document.getElementById('historyTable').innerHTML = logs.map(l => `
+                    <tr>
+                        <td class="p-6">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-800 ${l.type === 'IN' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
+                                ${l.type}
+                            </span>
+                        </td>
+                        <td class="p-6 text-white font-800 text-right">${l.qty} Units</td>
+                    </tr>
+                `).join('');
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        window.onload = goHome;
+    </script>
+</body>
+</html>
